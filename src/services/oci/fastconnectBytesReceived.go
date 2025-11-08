@@ -12,22 +12,20 @@ import (
 	"oci-exporter/src/utils"
 )
 
-var vpnBgpSession = prometheus.NewGaugeVec(
+var fastconnectBytesReceived = prometheus.NewGaugeVec(
 	prometheus.GaugeOpts{
 		Namespace: "oci_exporter",
-		Name:      "vpn_ipv4_bgp_session_state",
-		Help:      "BGP State of OCI IPv4 VPN, 1=up, 0=down.",
+		Name:      "fastconnect_bytes_received",
+		Help:      "Total Bytes Received on OCI FastConnect.",
 	},
-	[]string{"resource_name", "compartment_id", "parent_resource_id"},
+	[]string{"resource_name", "compartment_id", "resource_id"},
 )
 
-func GetVpnBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, error) {
-	vpnBgpSession.Reset()
+func GetFastconnectBytesReceived(ctx context.Context) (*prometheus.GaugeVec, error) {
+	fastconnectBytesReceived.Reset()
 
-	namespaceQuery := "oci_vpn"
-	query := "Ipv4BgpSessionState[1m].mean()"
-
-	// create local GaugeVec and return it; caller (handler) should register if desired
+	namespaceQuery := "oci_fastconnect"
+	query := "BytesReceived[1m].sum()"
 
 	compartmentIds := config.CompartmentIds
 
@@ -36,9 +34,9 @@ func GetVpnBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, error) {
 
 	for _, compartmentId := range compartmentIds {
 		go func() {
-			if err := getVpnBGPSessionStateByCompartment(
+			if err := getFastconnectBytesReceivedByCompartment(
 				ctx,
-				vpnBgpSession,
+				fastconnectBytesReceived,
 				compartmentId,
 				query,
 				namespaceQuery,
@@ -58,16 +56,16 @@ func GetVpnBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, error) {
 	// return first error if any
 	for err := range errCh {
 		if err != nil {
-			return vpnBgpSession, err
+			return fastconnectBytesReceived, err
 		}
 	}
 
-	return vpnBgpSession, nil
+	return fastconnectBytesReceived, nil
 }
 
-func getVpnBGPSessionStateByCompartment(
+func getFastconnectBytesReceivedByCompartment(
 	ctx context.Context,
-	fastconnectBgpSession *prometheus.GaugeVec,
+	fastconnectBytesReceived *prometheus.GaugeVec,
 	compartmentId string,
 	query string,
 	namespaceQuery string,
@@ -108,19 +106,18 @@ func getVpnBGPSessionStateByCompartment(
 			continue
 		}
 		lastPoint := metric.AggregatedDatapoints[len(metric.AggregatedDatapoints)-1]
-		value := int(*lastPoint.Value)
+		value := *lastPoint.Value
 
 		// extract dimension values
 		resourceName := metric.Dimensions["resourceName"]
-		compartmentId := *metric.CompartmentId
-		parentResourceId := metric.Dimensions["parentResourceId"]
+		compartmentID := *metric.CompartmentId
+		resourceID := metric.Dimensions["resourceId"]
 
-		// set gauge value
-		fastconnectBgpSession.With(prometheus.Labels{
-			"resource_name":      resourceName,
-			"compartment_id":     compartmentId,
-			"parent_resource_id": parentResourceId,
-		}).Set(float64(value))
+		fastconnectBytesReceived.With(prometheus.Labels{
+			"resource_name":  resourceName,
+			"compartment_id": compartmentID,
+			"resource_id":    resourceID,
+		}).Set(value)
 	}
 
 	return nil

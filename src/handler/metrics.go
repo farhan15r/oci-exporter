@@ -2,44 +2,50 @@ package handler
 
 import (
 	"net/http"
+	"sync"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"oci-exporter/src/services/oci"
 )
 
+var (
+	registerOnce             sync.Once
+	fastconnectBgpSession    prometheus.Collector
+	fastconnectBytesReceived prometheus.Collector
+	vpnBgpSession            prometheus.Collector
+)
+
 func GETMetrics(w http.ResponseWriter, r *http.Request) {
-	// instanceCPUUtilization, err := oci.GetInstanceCPUUtilization(r.Context())
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	w.Write([]byte("Error fetching metrics: " + err.Error()))
-	// 	return
-	// }
+	err := error(nil)
 
-	fastConnBgpSess, err := oci.GetFastconnectBGPSessionState(r.Context())
+	fastconnectBgpSession, err = oci.GetFastconnectBGPSessionState(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Error fetching metrics: " + err.Error()))
 		return
 	}
 
-	fastBytesReceived, err := oci.GetFastconnectBytesReceived(r.Context())
+	fastconnectBytesReceived, err = oci.GetFastconnectBytesReceived(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Error fetching metrics: " + err.Error()))
 		return
 	}
 
-	vpnBgpSess, err := oci.GetVpnBGPSessionState(r.Context())
+	vpnBgpSession, err = oci.GetVpnBGPSessionState(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Error fetching metrics: " + err.Error()))
 		return
 	}
 
-	res := ""
-	// res += instanceCPUUtilization
-	res += fastConnBgpSess
-	res += fastBytesReceived
-	res += vpnBgpSess
+	registerOnce.Do(func() {
+		prometheus.MustRegister(fastconnectBgpSession)
+		prometheus.MustRegister(fastconnectBytesReceived)
+		prometheus.MustRegister(vpnBgpSession)
+	})
 
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(res))
+	promhttp.Handler().ServeHTTP(w, r)
 }
