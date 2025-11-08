@@ -23,6 +23,7 @@ var (
 	vpnBytesSent     prometheus.Collector
 
 	dbClusterAsmDiskUtil prometheus.Collector
+	dbClusterNodeStatus  prometheus.Collector
 )
 
 func GETMetrics(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +85,13 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	dbClusterNodeStatus, err = oci.GetDbClusterNodeStatus(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error fetching metrics: " + err.Error()))
+		return
+	}
+
 	registerOnce.Do(func() {
 		prometheus.MustRegister(fastconnectBgpSession)
 		prometheus.MustRegister(fastconnectBytesReceived)
@@ -93,6 +101,7 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		prometheus.MustRegister(vpnBytesReceived)
 		prometheus.MustRegister(vpnBytesSent)
 		prometheus.MustRegister(dbClusterAsmDiskUtil)
+		prometheus.MustRegister(dbClusterNodeStatus)
 	})
 
 	promhttp.Handler().ServeHTTP(w, r)
