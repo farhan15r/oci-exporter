@@ -31,7 +31,6 @@ func GetFastconnectBytesReceived(ctx context.Context) (*prometheus.GaugeVec, err
 
 	err := getFastconnectBytesReceivedByCompartment(
 		ctx,
-		fastconnectBytesReceived,
 		compartmentId,
 		query,
 		namespaceQuery,
@@ -45,7 +44,6 @@ func GetFastconnectBytesReceived(ctx context.Context) (*prometheus.GaugeVec, err
 
 func getFastconnectBytesReceivedByCompartment(
 	ctx context.Context,
-	fastconnectBytesReceived *prometheus.GaugeVec,
 	compartmentId string,
 	query string,
 	namespaceQuery string,

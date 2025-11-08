@@ -21,7 +21,7 @@ var vpnBytesReceived = prometheus.NewGaugeVec(
 	[]string{"resource_name", "compartment_id", "parent_resource_id"},
 )
 
-func GetvpnBytesReceivedState(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetVpnBytesReceivedState(ctx context.Context) (*prometheus.GaugeVec, error) {
 	vpnBytesReceived.Reset()
 
 	namespaceQuery := "oci_vpn"
@@ -29,9 +29,8 @@ func GetvpnBytesReceivedState(ctx context.Context) (*prometheus.GaugeVec, error)
 
 	compartmentId := config.CompartmentId
 
-	err := getvpnBytesReceivedStateByCompartment(
+	err := getVpnBytesReceivedStateByCompartment(
 		ctx,
-		vpnBytesReceived,
 		compartmentId,
 		query,
 		namespaceQuery,
@@ -43,9 +42,8 @@ func GetvpnBytesReceivedState(ctx context.Context) (*prometheus.GaugeVec, error)
 	return vpnBytesReceived, nil
 }
 
-func getvpnBytesReceivedStateByCompartment(
+func getVpnBytesReceivedStateByCompartment(
 	ctx context.Context,
-	vpnBytesReceived *prometheus.GaugeVec,
 	compartmentId string,
 	query string,
 	namespaceQuery string,

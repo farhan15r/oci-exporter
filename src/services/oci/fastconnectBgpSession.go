@@ -31,7 +31,6 @@ func GetFastconnectBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, e
 
 	err := getFastconnectBGPSessionStateByCompartment(
 		ctx,
-		fastconnectBgpSession,
 		compartmentId,
 		query,
 		namespaceQuery,
@@ -45,7 +44,6 @@ func GetFastconnectBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, e
 
 func getFastconnectBGPSessionStateByCompartment(
 	ctx context.Context,
-	fastconnectBgpSession *prometheus.GaugeVec,
 	compartmentId string,
 	query string,
 	namespaceQuery string,

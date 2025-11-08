@@ -31,7 +31,6 @@ func GetVpnBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, error) {
 
 	err := getVpnBGPSessionStateByCompartment(
 		ctx,
-		vpnBgpSession,
 		compartmentId,
 		query,
 		namespaceQuery,
@@ -45,7 +44,6 @@ func GetVpnBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, error) {
 
 func getVpnBGPSessionStateByCompartment(
 	ctx context.Context,
-	vpnBgpSession *prometheus.GaugeVec,
 	compartmentId string,
 	query string,
 	namespaceQuery string,
