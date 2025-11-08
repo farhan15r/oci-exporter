@@ -8,7 +8,7 @@ import (
 )
 
 func NewOciClient() (monitoring.MonitoringClient, error) {
-	confProvider := common.CustomProfileConfigProvider("./oci.config", "DEFAULT")
+	confProvider := common.CustomProfileConfigProvider(OciConfigPath, OciConfigProfile)
 	client, err := monitoring.NewMonitoringClientWithConfigurationProvider(confProvider)
 	if err != nil {
 		utils.Logger.Error("failed creating monitoring client", "error", err.Error())

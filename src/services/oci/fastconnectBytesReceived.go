@@ -27,37 +27,17 @@ func GetFastconnectBytesReceived(ctx context.Context) (*prometheus.GaugeVec, err
 	namespaceQuery := "oci_fastconnect"
 	query := "BytesReceived[1m].sum()"
 
-	compartmentIds := config.CompartmentIds
+	compartmentId := config.CompartmentId
 
-	errCh := make(chan error, len(compartmentIds))
-	done := make(chan struct{}, len(compartmentIds))
-
-	for _, compartmentId := range compartmentIds {
-		go func() {
-			if err := getFastconnectBytesReceivedByCompartment(
-				ctx,
-				fastconnectBytesReceived,
-				compartmentId,
-				query,
-				namespaceQuery,
-			); err != nil {
-				errCh <- err
-			}
-			done <- struct{}{}
-		}()
-	}
-
-	// wait for all goroutines to finish
-	for i := 0; i < len(compartmentIds); i++ {
-		<-done
-	}
-	close(errCh)
-
-	// return first error if any
-	for err := range errCh {
-		if err != nil {
-			return fastconnectBytesReceived, err
-		}
+	err := getFastconnectBytesReceivedByCompartment(
+		ctx,
+		fastconnectBytesReceived,
+		compartmentId,
+		query,
+		namespaceQuery,
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	return fastconnectBytesReceived, nil
@@ -79,7 +59,8 @@ func getFastconnectBytesReceivedByCompartment(
 	sdkEnd := common.SDKTime{Time: end}
 
 	req := monitoring.SummarizeMetricsDataRequest{
-		CompartmentId: &compartmentId,
+		CompartmentId:          &compartmentId,
+		CompartmentIdInSubtree: &config.CompartmentIdInSubtree,
 		SummarizeMetricsDataDetails: monitoring.SummarizeMetricsDataDetails{
 			Query:     &query,
 			StartTime: &sdkStart,
