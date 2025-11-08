@@ -90,7 +90,7 @@ func getDbClusterAsmDiskUtilByCompartment(
 			continue
 		}
 		lastPoint := metric.AggregatedDatapoints[len(metric.AggregatedDatapoints)-1]
-		value := int(*lastPoint.Value)
+		value := *lastPoint.Value
 
 		// extract dimension values
 		resourceId := metric.Dimensions["resourceId"]
@@ -104,7 +104,7 @@ func getDbClusterAsmDiskUtilByCompartment(
 			"compartment_id":  compartmentId,
 			"resource_name":   resourceName,
 			"disk_group_name": diskgroupName,
-		}).Set(float64(value))
+		}).Set(value)
 	}
 
 	return nil

@@ -85,7 +85,7 @@ func getFastconnectBGPSessionStateByCompartment(
 			continue
 		}
 		lastPoint := metric.AggregatedDatapoints[len(metric.AggregatedDatapoints)-1]
-		value := int(*lastPoint.Value)
+		value := *lastPoint.Value
 
 		// extract dimension values
 		resourceName := metric.Dimensions["resourceName"]
@@ -97,7 +97,7 @@ func getFastconnectBGPSessionStateByCompartment(
 			"resource_name":  resourceName,
 			"compartment_id": compartmentId,
 			"resource_id":    resourceId,
-		}).Set(float64(value))
+		}).Set(value)
 	}
 
 	return nil

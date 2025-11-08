@@ -87,7 +87,7 @@ func getVpnIpSecStateStateByCompartment(
 			continue
 		}
 		lastPoint := metric.AggregatedDatapoints[len(metric.AggregatedDatapoints)-1]
-		value := int(*lastPoint.Value)
+		value := *lastPoint.Value
 
 		// extract dimension values
 		resourceName := metric.Dimensions["resourceName"]
@@ -99,7 +99,7 @@ func getVpnIpSecStateStateByCompartment(
 			"resource_name":      resourceName,
 			"compartment_id":     compartmentId,
 			"parent_resource_id": parentResourceId,
-		}).Set(float64(value))
+		}).Set(value)
 	}
 
 	return nil

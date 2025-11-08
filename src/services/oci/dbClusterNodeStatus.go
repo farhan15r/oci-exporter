@@ -90,7 +90,7 @@ func getDbClusterNodeStatusByCompartment(
 			continue
 		}
 		lastPoint := metric.AggregatedDatapoints[len(metric.AggregatedDatapoints)-1]
-		value := int(*lastPoint.Value)
+		value := *lastPoint.Value
 
 		// extract dimension values
 		compartmentId := *metric.CompartmentId
@@ -104,7 +104,7 @@ func getDbClusterNodeStatusByCompartment(
 			"db_node_name":   dbNodeName,
 			"reource_id":     resourceId,
 			"resource_name":  resourceName,
-		}).Set(float64(value))
+		}).Set(value)
 	}
 
 	return nil
