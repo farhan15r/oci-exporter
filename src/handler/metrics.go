@@ -16,6 +16,9 @@ var (
 	fastconnectBytesReceived prometheus.Collector
 	fastconnectBytesSent     prometheus.Collector
 	vpnBgpSession            prometheus.Collector
+	vpnIpSecState            prometheus.Collector
+	vpnBytesReceived         prometheus.Collector
+	vpnBytesSent             prometheus.Collector
 )
 
 func GETMetrics(w http.ResponseWriter, r *http.Request) {
@@ -49,11 +52,35 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	vpnIpSecState, err = oci.GetvpnIpSecStateState(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error fetching metrics: " + err.Error()))
+		return
+	}
+
+	vpnBytesReceived, err = oci.GetvpnBytesReceivedState(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error fetching metrics: " + err.Error()))
+		return
+	}
+
+	vpnBytesSent, err = oci.GetvpnBytesSentState(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error fetching metrics: " + err.Error()))
+		return
+	}
+
 	registerOnce.Do(func() {
 		prometheus.MustRegister(fastconnectBgpSession)
 		prometheus.MustRegister(fastconnectBytesReceived)
 		prometheus.MustRegister(fastconnectBytesSent)
 		prometheus.MustRegister(vpnBgpSession)
+		prometheus.MustRegister(vpnIpSecState)
+		prometheus.MustRegister(vpnBytesReceived)
+		prometheus.MustRegister(vpnBytesSent)
 	})
 
 	promhttp.Handler().ServeHTTP(w, r)

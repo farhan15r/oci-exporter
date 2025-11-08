@@ -12,26 +12,26 @@ import (
 	"oci-exporter/src/utils"
 )
 
-var vpnBgpSession = prometheus.NewGaugeVec(
+var vpnBytesReceived = prometheus.NewGaugeVec(
 	prometheus.GaugeOpts{
 		Namespace: "oci_exporter",
-		Name:      "vpn_ipv4_bgp_session_state",
-		Help:      "BGP State of OCI IPv4 VPN, 1=up, 0=down.",
+		Name:      "vpn_bytes_received",
+		Help:      "Total Bytes Received on OCI VPN.",
 	},
 	[]string{"resource_name", "compartment_id", "parent_resource_id"},
 )
 
-func GetVpnBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, error) {
-	vpnBgpSession.Reset()
+func GetvpnBytesReceivedState(ctx context.Context) (*prometheus.GaugeVec, error) {
+	vpnBytesReceived.Reset()
 
 	namespaceQuery := "oci_vpn"
-	query := "Ipv4BgpSessionState[1m].mean()"
+	query := "BytesReceived[1m].sum()"
 
 	compartmentId := config.CompartmentId
 
-	err := getVpnBGPSessionStateByCompartment(
+	err := getvpnBytesReceivedStateByCompartment(
 		ctx,
-		vpnBgpSession,
+		vpnBytesReceived,
 		compartmentId,
 		query,
 		namespaceQuery,
@@ -40,12 +40,12 @@ func GetVpnBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, error) {
 		return nil, err
 	}
 
-	return vpnBgpSession, nil
+	return vpnBytesReceived, nil
 }
 
-func getVpnBGPSessionStateByCompartment(
+func getvpnBytesReceivedStateByCompartment(
 	ctx context.Context,
-	vpnBgpSession *prometheus.GaugeVec,
+	vpnBytesReceived *prometheus.GaugeVec,
 	compartmentId string,
 	query string,
 	namespaceQuery string,
@@ -95,7 +95,7 @@ func getVpnBGPSessionStateByCompartment(
 		parentResourceId := metric.Dimensions["parentResourceId"]
 
 		// set gauge value
-		vpnBgpSession.With(prometheus.Labels{
+		vpnBytesReceived.With(prometheus.Labels{
 			"resource_name":      resourceName,
 			"compartment_id":     compartmentId,
 			"parent_resource_id": parentResourceId,
