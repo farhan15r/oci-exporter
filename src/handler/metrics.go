@@ -11,14 +11,18 @@ import (
 )
 
 var (
-	registerOnce             sync.Once
+	registerOnce sync.Once
+
 	fastconnectBgpSession    prometheus.Collector
 	fastconnectBytesReceived prometheus.Collector
 	fastconnectBytesSent     prometheus.Collector
-	vpnBgpSession            prometheus.Collector
-	vpnIpSecState            prometheus.Collector
-	vpnBytesReceived         prometheus.Collector
-	vpnBytesSent             prometheus.Collector
+
+	vpnBgpSession    prometheus.Collector
+	vpnIpSecState    prometheus.Collector
+	vpnBytesReceived prometheus.Collector
+	vpnBytesSent     prometheus.Collector
+
+	dbClusterAsmDiskUtil prometheus.Collector
 )
 
 func GETMetrics(w http.ResponseWriter, r *http.Request) {
@@ -52,21 +56,28 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vpnIpSecState, err = oci.GetvpnIpSecStateState(r.Context())
+	vpnIpSecState, err = oci.GetVpnIpSecStateState(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Error fetching metrics: " + err.Error()))
 		return
 	}
 
-	vpnBytesReceived, err = oci.GetvpnBytesReceivedState(r.Context())
+	vpnBytesReceived, err = oci.GetVpnBytesReceivedState(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Error fetching metrics: " + err.Error()))
 		return
 	}
 
-	vpnBytesSent, err = oci.GetvpnBytesSentState(r.Context())
+	vpnBytesSent, err = oci.GetVpnBytesSentState(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error fetching metrics: " + err.Error()))
+		return
+	}
+
+	dbClusterAsmDiskUtil, err = oci.GetDbClusterAsmDiskUtil(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Error fetching metrics: " + err.Error()))
@@ -81,6 +92,7 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		prometheus.MustRegister(vpnIpSecState)
 		prometheus.MustRegister(vpnBytesReceived)
 		prometheus.MustRegister(vpnBytesSent)
+		prometheus.MustRegister(dbClusterAsmDiskUtil)
 	})
 
 	promhttp.Handler().ServeHTTP(w, r)
