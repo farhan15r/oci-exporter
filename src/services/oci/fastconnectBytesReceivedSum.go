@@ -12,24 +12,24 @@ import (
 	"oci-exporter/src/utils"
 )
 
-var fastconnectBytesReceived = prometheus.NewGaugeVec(
+var fastconnectBytesReceivedSum = prometheus.NewGaugeVec(
 	prometheus.GaugeOpts{
 		Namespace: "oci_exporter",
-		Name:      "fastconnect_bytes_received",
-		Help:      "Total Bytes Received on OCI FastConnect.",
+		Name:      "fastconnect_bytes_received_sum_1m",
+		Help:      "Total (sum) Bytes Received on OCI FastConnect.",
 	},
 	[]string{"resource_name", "compartment_id", "resource_id"},
 )
 
-func GetFastconnectBytesReceived(ctx context.Context) (*prometheus.GaugeVec, error) {
-	fastconnectBytesReceived.Reset()
+func GetFastconnectBytesReceivedSum(ctx context.Context) (*prometheus.GaugeVec, error) {
+	fastconnectBytesReceivedSum.Reset()
 
 	namespaceQuery := "oci_fastconnect"
 	query := "BytesReceived[1m].sum()"
 
 	compartmentId := config.CompartmentId
 
-	err := getFastconnectBytesReceivedByCompartment(
+	err := getFastconnectBytesReceivedSumByCompartment(
 		ctx,
 		compartmentId,
 		query,
@@ -39,10 +39,10 @@ func GetFastconnectBytesReceived(ctx context.Context) (*prometheus.GaugeVec, err
 		return nil, err
 	}
 
-	return fastconnectBytesReceived, nil
+	return fastconnectBytesReceivedSum, nil
 }
 
-func getFastconnectBytesReceivedByCompartment(
+func getFastconnectBytesReceivedSumByCompartment(
 	ctx context.Context,
 	compartmentId string,
 	query string,
@@ -92,7 +92,7 @@ func getFastconnectBytesReceivedByCompartment(
 		compartmentID := *metric.CompartmentId
 		resourceID := metric.Dimensions["resourceId"]
 
-		fastconnectBytesReceived.With(prometheus.Labels{
+		fastconnectBytesReceivedSum.With(prometheus.Labels{
 			"resource_name":  resourceName,
 			"compartment_id": compartmentID,
 			"resource_id":    resourceID,

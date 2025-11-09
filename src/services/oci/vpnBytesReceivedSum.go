@@ -12,24 +12,24 @@ import (
 	"oci-exporter/src/utils"
 )
 
-var vpnBytesReceived = prometheus.NewGaugeVec(
+var vpnBytesReceivedSum = prometheus.NewGaugeVec(
 	prometheus.GaugeOpts{
 		Namespace: "oci_exporter",
-		Name:      "vpn_bytes_received",
-		Help:      "Total Bytes Received on OCI VPN.",
+		Name:      "vpn_bytes_received_sum_1m",
+		Help:      "Total (sum) Bytes Received on OCI VPN.",
 	},
 	[]string{"resource_name", "compartment_id", "parent_resource_id"},
 )
 
-func GetVpnBytesReceivedState(ctx context.Context) (*prometheus.GaugeVec, error) {
-	vpnBytesReceived.Reset()
+func GetVpnBytesReceivedSum(ctx context.Context) (*prometheus.GaugeVec, error) {
+	vpnBytesReceivedSum.Reset()
 
 	namespaceQuery := "oci_vpn"
 	query := "BytesReceived[1m].sum()"
 
 	compartmentId := config.CompartmentId
 
-	err := getVpnBytesReceivedStateByCompartment(
+	err := getVpnBytesReceivedSumByCompartment(
 		ctx,
 		compartmentId,
 		query,
@@ -39,10 +39,10 @@ func GetVpnBytesReceivedState(ctx context.Context) (*prometheus.GaugeVec, error)
 		return nil, err
 	}
 
-	return vpnBytesReceived, nil
+	return vpnBytesReceivedSum, nil
 }
 
-func getVpnBytesReceivedStateByCompartment(
+func getVpnBytesReceivedSumByCompartment(
 	ctx context.Context,
 	compartmentId string,
 	query string,
@@ -93,7 +93,7 @@ func getVpnBytesReceivedStateByCompartment(
 		parentResourceId := metric.Dimensions["parentResourceId"]
 
 		// set gauge value
-		vpnBytesReceived.With(prometheus.Labels{
+		vpnBytesReceivedSum.With(prometheus.Labels{
 			"resource_name":      resourceName,
 			"compartment_id":     compartmentId,
 			"parent_resource_id": parentResourceId,

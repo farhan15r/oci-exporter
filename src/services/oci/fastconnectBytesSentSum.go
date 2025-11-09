@@ -12,24 +12,24 @@ import (
 	"oci-exporter/src/utils"
 )
 
-var vpnBytesSent = prometheus.NewGaugeVec(
+var fastconnectBytesSentSum = prometheus.NewGaugeVec(
 	prometheus.GaugeOpts{
 		Namespace: "oci_exporter",
-		Name:      "vpn_bytes_sent",
-		Help:      "Total Bytes Sent on OCI VPN.",
+		Name:      "fastconnect_bytes_sent_sum_1m",
+		Help:      "Total (sum) Bytes Received on OCI FastConnect.",
 	},
-	[]string{"resource_name", "compartment_id", "parent_resource_id"},
+	[]string{"resource_name", "compartment_id", "resource_id"},
 )
 
-func GetVpnBytesSentState(ctx context.Context) (*prometheus.GaugeVec, error) {
-	vpnBytesSent.Reset()
+func GetFastconnectBytesSentSum(ctx context.Context) (*prometheus.GaugeVec, error) {
+	fastconnectBytesSentSum.Reset()
 
-	namespaceQuery := "oci_vpn"
+	namespaceQuery := "oci_fastconnect"
 	query := "BytesSent[1m].sum()"
 
 	compartmentId := config.CompartmentId
 
-	err := getVpnBytesSentStateByCompartment(
+	err := getFastconnectBytesSentSumByCompartment(
 		ctx,
 		compartmentId,
 		query,
@@ -39,10 +39,10 @@ func GetVpnBytesSentState(ctx context.Context) (*prometheus.GaugeVec, error) {
 		return nil, err
 	}
 
-	return vpnBytesSent, nil
+	return fastconnectBytesSentSum, nil
 }
 
-func getVpnBytesSentStateByCompartment(
+func getFastconnectBytesSentSumByCompartment(
 	ctx context.Context,
 	compartmentId string,
 	query string,
@@ -89,14 +89,13 @@ func getVpnBytesSentStateByCompartment(
 
 		// extract dimension values
 		resourceName := metric.Dimensions["resourceName"]
-		compartmentId := *metric.CompartmentId
-		parentResourceId := metric.Dimensions["parentResourceId"]
+		compartmentID := *metric.CompartmentId
+		resourceID := metric.Dimensions["resourceId"]
 
-		// set gauge value
-		vpnBytesSent.With(prometheus.Labels{
-			"resource_name":      resourceName,
-			"compartment_id":     compartmentId,
-			"parent_resource_id": parentResourceId,
+		fastconnectBytesSentSum.With(prometheus.Labels{
+			"resource_name":  resourceName,
+			"compartment_id": compartmentID,
+			"resource_id":    resourceID,
 		}).Set(value)
 	}
 

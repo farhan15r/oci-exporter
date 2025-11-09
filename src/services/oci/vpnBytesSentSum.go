@@ -12,24 +12,24 @@ import (
 	"oci-exporter/src/utils"
 )
 
-var fastconnectBytesSent = prometheus.NewGaugeVec(
+var vpnBytesSentSum = prometheus.NewGaugeVec(
 	prometheus.GaugeOpts{
 		Namespace: "oci_exporter",
-		Name:      "fastconnect_bytes_sent",
-		Help:      "Total Bytes Received on OCI FastConnect.",
+		Name:      "vpn_bytes_sent_sum_1m",
+		Help:      "Total (sum) Bytes Sent on OCI VPN.",
 	},
-	[]string{"resource_name", "compartment_id", "resource_id"},
+	[]string{"resource_name", "compartment_id", "parent_resource_id"},
 )
 
-func GetFastconnectBytesSent(ctx context.Context) (*prometheus.GaugeVec, error) {
-	fastconnectBytesSent.Reset()
+func GetVpnBytesSentSum(ctx context.Context) (*prometheus.GaugeVec, error) {
+	vpnBytesSentSum.Reset()
 
-	namespaceQuery := "oci_fastconnect"
+	namespaceQuery := "oci_vpn"
 	query := "BytesSent[1m].sum()"
 
 	compartmentId := config.CompartmentId
 
-	err := getFastconnectBytesSentByCompartment(
+	err := getVpnBytesSentSumByCompartment(
 		ctx,
 		compartmentId,
 		query,
@@ -39,10 +39,10 @@ func GetFastconnectBytesSent(ctx context.Context) (*prometheus.GaugeVec, error) 
 		return nil, err
 	}
 
-	return fastconnectBytesSent, nil
+	return vpnBytesSentSum, nil
 }
 
-func getFastconnectBytesSentByCompartment(
+func getVpnBytesSentSumByCompartment(
 	ctx context.Context,
 	compartmentId string,
 	query string,
@@ -89,13 +89,14 @@ func getFastconnectBytesSentByCompartment(
 
 		// extract dimension values
 		resourceName := metric.Dimensions["resourceName"]
-		compartmentID := *metric.CompartmentId
-		resourceID := metric.Dimensions["resourceId"]
+		compartmentId := *metric.CompartmentId
+		parentResourceId := metric.Dimensions["parentResourceId"]
 
-		fastconnectBytesSent.With(prometheus.Labels{
-			"resource_name":  resourceName,
-			"compartment_id": compartmentID,
-			"resource_id":    resourceID,
+		// set gauge value
+		vpnBytesSentSum.With(prometheus.Labels{
+			"resource_name":      resourceName,
+			"compartment_id":     compartmentId,
+			"parent_resource_id": parentResourceId,
 		}).Set(value)
 	}
 
