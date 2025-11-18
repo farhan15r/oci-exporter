@@ -2,12 +2,11 @@ package handler
 
 import (
 	"net/http"
+	"oci-exporter/src/services/oci"
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
-	"oci-exporter/src/services/oci"
 )
 
 var (
@@ -27,6 +26,8 @@ var (
 
 	dbOracleExecuteCount prometheus.Collector
 	dbOracleCurrLogon    prometheus.Collector
+
+	dbCurrLogon prometheus.Collector
 )
 
 func GETMetrics(w http.ResponseWriter, r *http.Request) {
@@ -109,6 +110,13 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	dbCurrLogon, err = oci.GetDbCurrLogon(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error fetching metrics: " + err.Error()))
+		return
+	}
+
 	registerOnce.Do(func() {
 		prometheus.MustRegister(fastconnectBgpSession)
 		prometheus.MustRegister(fastconnectBytesReceivedSum)
@@ -121,6 +129,7 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		prometheus.MustRegister(dbClusterNodeStatus)
 		prometheus.MustRegister(dbOracleExecuteCount)
 		prometheus.MustRegister(dbOracleCurrLogon)
+		prometheus.MustRegister(dbCurrLogon)
 	})
 
 	promhttp.Handler().ServeHTTP(w, r)

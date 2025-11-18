@@ -12,10 +12,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var dbOracleCurrLogon = prometheus.NewGaugeVec(
+var dbCurrLogon = prometheus.NewGaugeVec(
 	prometheus.GaugeOpts{
 		Namespace: "oci_exporter",
-		Name:      "database_oracle_current_logons",
+		Name:      "database_current_logons",
 		Help:      "The number of successful logons",
 	},
 	[]string{
@@ -26,15 +26,15 @@ var dbOracleCurrLogon = prometheus.NewGaugeVec(
 	},
 )
 
-func GetDbOracleCurrLogon(ctx context.Context) (*prometheus.GaugeVec, error) {
-	dbOracleCurrLogon.Reset()
+func GetDbCurrLogon(ctx context.Context) (*prometheus.GaugeVec, error) {
+	dbCurrLogon.Reset()
 
-	namespaceQuery := "oracle_oci_database"
+	namespaceQuery := "oci_database"
 	query := "CurrentLogons[1m].mean()"
 
 	compartmentId := config.CompartmentId
 
-	err := getDbOracleCurrLogonByCompartment(
+	err := getDbCurrLogonByCompartment(
 		ctx,
 		compartmentId,
 		query,
@@ -44,10 +44,10 @@ func GetDbOracleCurrLogon(ctx context.Context) (*prometheus.GaugeVec, error) {
 		return nil, err
 	}
 
-	return dbOracleCurrLogon, nil
+	return dbCurrLogon, nil
 }
 
-func getDbOracleCurrLogonByCompartment(
+func getDbCurrLogonByCompartment(
 	ctx context.Context,
 	compartmentId string,
 	query string,
@@ -100,7 +100,7 @@ func getDbOracleCurrLogonByCompartment(
 		compartmentId := *metric.CompartmentId
 
 		// set gauge value
-		dbOracleCurrLogon.With(prometheus.Labels{
+		dbCurrLogon.With(prometheus.Labels{
 			"reource_id":     resourceId,
 			"compartment_id": compartmentId,
 			"resource_name":  resourceName,
