@@ -53,7 +53,7 @@ func getDbCurrLogonByCompartment(
 	query string,
 	namespaceQuery string,
 ) error {
-	minutes := 15
+	minutes := 5
 
 	end := time.Now().UTC()
 	start := end.Add(-time.Duration(minutes) * time.Minute)
