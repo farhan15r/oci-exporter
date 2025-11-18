@@ -24,6 +24,9 @@ var (
 
 	dbClusterAsmDiskUtil prometheus.Collector
 	dbClusterNodeStatus  prometheus.Collector
+
+	dbOracleExecuteCount prometheus.Collector
+	dbOracleCurrLogon    prometheus.Collector
 )
 
 func GETMetrics(w http.ResponseWriter, r *http.Request) {
@@ -92,6 +95,20 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	dbOracleExecuteCount, err = oci.GetDbOracleExecuteCount(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error fetching metrics: " + err.Error()))
+		return
+	}
+
+	dbOracleCurrLogon, err = oci.GetDbOracleCurrLogon(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error fetching metrics: " + err.Error()))
+		return
+	}
+
 	registerOnce.Do(func() {
 		prometheus.MustRegister(fastconnectBgpSession)
 		prometheus.MustRegister(fastconnectBytesReceivedSum)
@@ -102,6 +119,8 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		prometheus.MustRegister(vpnBytesSentSum)
 		prometheus.MustRegister(dbClusterAsmDiskUtil)
 		prometheus.MustRegister(dbClusterNodeStatus)
+		prometheus.MustRegister(dbOracleExecuteCount)
+		prometheus.MustRegister(dbOracleCurrLogon)
 	})
 
 	promhttp.Handler().ServeHTTP(w, r)
