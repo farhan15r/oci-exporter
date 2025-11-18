@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"oci-exporter/src/services/oci"
 	"sync"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -69,6 +70,8 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	time.Sleep(1 * time.Second)
+
 	vpnBytesReceivedSum, err = oci.GetVpnBytesReceivedSum(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -103,6 +106,8 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Error fetching metrics: " + err.Error()))
 		return
 	}
+
+	time.Sleep(1 * time.Second)
 
 	dbOracleCurrLogon, err = oci.GetDbOracleCurrLogon(r.Context())
 	if err != nil {
