@@ -48,7 +48,7 @@ func getVpnBytesSentSumByCompartment(
 	query string,
 	namespaceQuery string,
 ) error {
-	minutes := 5
+	minutes := config.TimeRangeMinute
 
 	end := time.Now().UTC()
 	start := end.Add(-time.Duration(minutes) * time.Minute)

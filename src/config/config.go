@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"oci-exporter/src/utils"
 	"os"
+	"strconv"
 )
 
 var (
@@ -12,6 +13,7 @@ var (
 	CompartmentIdInSubtree = os.Getenv("COMPARTMENT_ID_IN_SUBTREE") == "true"
 	OciConfigPath          = os.Getenv("OCI_CONFIG_PATH")
 	OciConfigProfile       = os.Getenv("OCI_CONFIG_PROFILE")
+	TimeRangeMinute        = 5
 )
 
 func InitConfig() {
@@ -46,4 +48,13 @@ func InitConfig() {
 	} else {
 		utils.Logger.Info(fmt.Sprintf("Using OCI_CONFIG_PROFILE: %s", OciConfigProfile))
 	}
+
+	time, err := strconv.Atoi(os.Getenv("TIME_RANGE_MINUTE"))
+	if err != nil {
+		utils.Logger.Info(fmt.Sprintf("Using Default TIME_RANGE_MINUTE %d", TimeRangeMinute))
+	} else {
+		TimeRangeMinute = time
+		utils.Logger.Info(fmt.Sprintf("Using TIME_RANGE_MINUTE %d", TimeRangeMinute))
+	}
+
 }
