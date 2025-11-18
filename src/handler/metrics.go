@@ -27,7 +27,8 @@ var (
 	dbOracleExecuteCount prometheus.Collector
 	dbOracleCurrLogon    prometheus.Collector
 
-	dbCurrLogon prometheus.Collector
+	dbExecuteCount prometheus.Collector
+	dbCurrLogon    prometheus.Collector
 )
 
 func GETMetrics(w http.ResponseWriter, r *http.Request) {
@@ -110,6 +111,13 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	dbExecuteCount, err = oci.GetDbExecuteCount(r.Context())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error fetching metrics: " + err.Error()))
+		return
+	}
+
 	dbCurrLogon, err = oci.GetDbCurrLogon(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -129,6 +137,7 @@ func GETMetrics(w http.ResponseWriter, r *http.Request) {
 		prometheus.MustRegister(dbClusterNodeStatus)
 		prometheus.MustRegister(dbOracleExecuteCount)
 		prometheus.MustRegister(dbOracleCurrLogon)
+		prometheus.MustRegister(dbExecuteCount)
 		prometheus.MustRegister(dbCurrLogon)
 	})
 
