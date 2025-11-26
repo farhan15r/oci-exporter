@@ -8,25 +8,26 @@ import (
 
 	"github.com/oracle/oci-go-sdk/common"
 	"github.com/oracle/oci-go-sdk/monitoring"
-
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var dbClusterAsmDiskUtil = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Namespace: "oci_exporter",
-		Name:      "database_cluster_asm_disk_utilization",
-		Help:      "ASM Disk Utilization of OCI Database Cluster.",
-	},
-	[]string{
-		"reource_id",
-		"compartment_id",
-		"resource_name",
-		"disk_group_name",
-	},
-)
+func newDbClusterAsmDiskUtil() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "oci_exporter",
+			Name:      "database_cluster_asm_disk_utilization",
+			Help:      "ASM Disk Utilization of OCI Database Cluster.",
+		},
+		[]string{
+			"reource_id",
+			"compartment_id",
+			"resource_name",
+			"disk_group_name",
+		},
+	)
+}
 
-func GetDbClusterAsmDiskUtil(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetDbClusterAsmDiskUtil(ctx context.Context, dbClusterAsmDiskUtil *prometheus.GaugeVec) (err error) {
 	dbClusterAsmDiskUtil.Reset()
 
 	namespaceQuery := "oci_database_cluster"
@@ -34,17 +35,18 @@ func GetDbClusterAsmDiskUtil(ctx context.Context) (*prometheus.GaugeVec, error) 
 
 	compartmentId := config.CompartmentId
 
-	err := getDbClusterAsmDiskUtilByCompartment(
+	err = getDbClusterAsmDiskUtilByCompartment(
 		ctx,
 		compartmentId,
 		query,
 		namespaceQuery,
+		dbClusterAsmDiskUtil,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return dbClusterAsmDiskUtil, nil
+	return nil
 }
 
 func getDbClusterAsmDiskUtilByCompartment(
@@ -52,6 +54,7 @@ func getDbClusterAsmDiskUtilByCompartment(
 	compartmentId string,
 	query string,
 	namespaceQuery string,
+	dbClusterAsmDiskUtil *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 

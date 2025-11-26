@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"context"
 	"net/http"
 	"oci-exporter/src/config"
 	"oci-exporter/src/handler"
+	"oci-exporter/src/services/oci"
 	"oci-exporter/src/utils"
 )
 
@@ -15,6 +17,9 @@ func StartServer() {
 	mux.HandleFunc("GET /", handler.GETHome)
 
 	mux.HandleFunc("GET /metrics", handler.GETMetrics)
+
+	oci.InitAndRegister()
+	go oci.StartBackgroundUpdater(context.Background())
 
 	utils.Logger.Info("Starting Server on :" + config.Port)
 

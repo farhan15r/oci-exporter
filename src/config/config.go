@@ -14,6 +14,7 @@ var (
 	OciConfigPath          = os.Getenv("OCI_CONFIG_PATH")
 	OciConfigProfile       = os.Getenv("OCI_CONFIG_PROFILE")
 	TimeRangeMinute        = 5
+	RefreshIntervalSeconds = 30
 )
 
 func InitConfig() {
@@ -55,6 +56,15 @@ func InitConfig() {
 	} else {
 		TimeRangeMinute = time
 		utils.Logger.Info(fmt.Sprintf("Using TIME_RANGE_MINUTE %d", TimeRangeMinute))
+	}
+
+	// optional refresh interval for background metric updates
+	refresh, err := strconv.Atoi(os.Getenv("REFRESH_INTERVAL_SECONDS"))
+	if err != nil || refresh <= 0 {
+		utils.Logger.Info(fmt.Sprintf("Using Default REFRESH_INTERVAL_SECONDS %d", RefreshIntervalSeconds))
+	} else {
+		RefreshIntervalSeconds = refresh
+		utils.Logger.Info(fmt.Sprintf("Using REFRESH_INTERVAL_SECONDS %d", RefreshIntervalSeconds))
 	}
 
 }
