@@ -25,6 +25,8 @@ var (
 	vpnIpSecState               = newVpnIpSecState()
 	postgresqlCpuUtilization    = newPostgresqlCpuUtilization()
 	postgresqlMemoryUtilization = newPostgresqlMemoryUtilization()
+	postgresqlUsedStorage       = newPostgresqlUsedStorage()
+	postgresqlConnections       = newPostgresqlConnections()
 )
 
 func InitAndRegister() {
@@ -164,6 +166,24 @@ func InitAndRegister() {
 		prometheus.MustRegister(postgresqlMemoryUtilization)
 	}
 	time.Sleep(time.Millisecond * 100)
+
+	// postgresqlUsedStorage
+	err = GetPostgresqlUsedStorage(context.Background(), postgresqlUsedStorage)
+	if err != nil {
+		utils.Logger.Error("GetPostgresqlUsedStorage init failed", "error", err.Error())
+	} else {
+		prometheus.MustRegister(postgresqlUsedStorage)
+	}
+	time.Sleep(time.Millisecond * 100)
+
+	// postgresqlConnections
+	err = GetPostgresqlConnections(context.Background(), postgresqlConnections)
+	if err != nil {
+		utils.Logger.Error("GetPostgresqlConnections init failed", "error", err.Error())
+	} else {
+		prometheus.MustRegister(postgresqlConnections)
+	}
+	time.Sleep(time.Millisecond * 100)
 }
 
 func StartBackgroundUpdater(ctx context.Context) {
@@ -268,6 +288,18 @@ func StartBackgroundUpdater(ctx context.Context) {
 			err = GetPostgresqlMemoryUtilization(ctx, postgresqlMemoryUtilization)
 			if err != nil {
 				utils.Logger.Error("refresh GetPostgresqlMemoryUtilization failed", "error", err.Error())
+			}
+			time.Sleep(time.Millisecond * 100)
+
+			err = GetPostgresqlUsedStorage(ctx, postgresqlUsedStorage)
+			if err != nil {
+				utils.Logger.Error("refresh GetPostgresqlUsedStorage failed", "error", err.Error())
+			}
+			time.Sleep(time.Millisecond * 100)
+
+			err = GetPostgresqlConnections(ctx, postgresqlConnections)
+			if err != nil {
+				utils.Logger.Error("refresh GetPostgresqlConnections failed", "error", err.Error())
 			}
 			time.Sleep(time.Millisecond * 100)
 		}

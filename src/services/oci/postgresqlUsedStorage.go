@@ -12,37 +12,37 @@ import (
 	"oci-exporter/src/utils"
 )
 
-func newPostgresqlCpuUtilization() *prometheus.GaugeVec {
+func newPostgresqlUsedStorage() *prometheus.GaugeVec {
 	return prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "oci_exporter",
-			Name:      "postgresql_cpu_utilization",
-			Help:      "CPU Utilization of OCI PostgreSQL Database.",
+			Name:      "postgresql_used_storage",
+			Help:      "Used Storage of OCI PostgreSQL Database.",
 		},
 		[]string{
 			"resource_name",
 			"resource_id",
 			"compartment_id",
 			"db_instance_id",
-			"db_instance_role",
+			"resource_type",
 		},
 	)
 }
 
-func GetPostgresqlCpuUtilization(ctx context.Context, postgresqlCpuUtilization *prometheus.GaugeVec) error {
-	postgresqlCpuUtilization.Reset()
+func GetPostgresqlUsedStorage(ctx context.Context, postgresqlUsedStorage *prometheus.GaugeVec) error {
+	postgresqlUsedStorage.Reset()
 
 	namespaceQuery := "oci_postgresql"
-	query := "CpuUtilization[1m].mean()"
+	query := "UsedStorage[1m].max()"
 
 	compartmentId := config.CompartmentId
 
-	err := getPostgresqlCpuUtilizationByCompartment(
+	err := getPostgresqlUsedStorageByCompartment(
 		ctx,
 		compartmentId,
 		query,
 		namespaceQuery,
-		postgresqlCpuUtilization,
+		postgresqlUsedStorage,
 	)
 	if err != nil {
 		return err
@@ -51,12 +51,12 @@ func GetPostgresqlCpuUtilization(ctx context.Context, postgresqlCpuUtilization *
 	return nil
 }
 
-func getPostgresqlCpuUtilizationByCompartment(
+func getPostgresqlUsedStorageByCompartment(
 	ctx context.Context,
 	compartmentId string,
 	query string,
 	namespaceQuery string,
-	postgresqlCpuUtilization *prometheus.GaugeVec,
+	postgresqlUsedStorage *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 
@@ -102,15 +102,15 @@ func getPostgresqlCpuUtilizationByCompartment(
 		resourceId := metric.Dimensions["resourceId"]
 		compartmentId := *metric.CompartmentId
 		dbInstanceId := metric.Dimensions["dbInstanceId"]
-		dbInstanceRole := metric.Dimensions["dbInstanceRole"]
+		resourceType := metric.Dimensions["resourceType"]
 
 		// set gauge value
-		postgresqlCpuUtilization.With(prometheus.Labels{
-			"resource_name":    resourceName,
-			"resource_id":      resourceId,
-			"compartment_id":   compartmentId,
-			"db_instance_id":   dbInstanceId,
-			"db_instance_role": dbInstanceRole,
+		postgresqlUsedStorage.With(prometheus.Labels{
+			"resource_name":  resourceName,
+			"resource_id":    resourceId,
+			"compartment_id": compartmentId,
+			"db_instance_id": dbInstanceId,
+			"resource_type":  resourceType,
 		}).Set(value)
 	}
 

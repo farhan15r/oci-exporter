@@ -12,12 +12,12 @@ import (
 	"oci-exporter/src/utils"
 )
 
-func newPostgresqlCpuUtilization() *prometheus.GaugeVec {
+func newPostgresqlConnections() *prometheus.GaugeVec {
 	return prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "oci_exporter",
-			Name:      "postgresql_cpu_utilization",
-			Help:      "CPU Utilization of OCI PostgreSQL Database.",
+			Name:      "postgresql_connections",
+			Help:      "Connections of OCI PostgreSQL Database.",
 		},
 		[]string{
 			"resource_name",
@@ -29,20 +29,20 @@ func newPostgresqlCpuUtilization() *prometheus.GaugeVec {
 	)
 }
 
-func GetPostgresqlCpuUtilization(ctx context.Context, postgresqlCpuUtilization *prometheus.GaugeVec) error {
-	postgresqlCpuUtilization.Reset()
+func GetPostgresqlConnections(ctx context.Context, postgresqlConnections *prometheus.GaugeVec) error {
+	postgresqlConnections.Reset()
 
 	namespaceQuery := "oci_postgresql"
-	query := "CpuUtilization[1m].mean()"
+	query := "Connections[1m].max()"
 
 	compartmentId := config.CompartmentId
 
-	err := getPostgresqlCpuUtilizationByCompartment(
+	err := getPostgresqlConnectionsByCompartment(
 		ctx,
 		compartmentId,
 		query,
 		namespaceQuery,
-		postgresqlCpuUtilization,
+		postgresqlConnections,
 	)
 	if err != nil {
 		return err
@@ -51,12 +51,12 @@ func GetPostgresqlCpuUtilization(ctx context.Context, postgresqlCpuUtilization *
 	return nil
 }
 
-func getPostgresqlCpuUtilizationByCompartment(
+func getPostgresqlConnectionsByCompartment(
 	ctx context.Context,
 	compartmentId string,
 	query string,
 	namespaceQuery string,
-	postgresqlCpuUtilization *prometheus.GaugeVec,
+	postgresqlConnections *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 
@@ -105,7 +105,7 @@ func getPostgresqlCpuUtilizationByCompartment(
 		dbInstanceRole := metric.Dimensions["dbInstanceRole"]
 
 		// set gauge value
-		postgresqlCpuUtilization.With(prometheus.Labels{
+		postgresqlConnections.With(prometheus.Labels{
 			"resource_name":    resourceName,
 			"resource_id":      resourceId,
 			"compartment_id":   compartmentId,

@@ -21,6 +21,7 @@ func newPostgresqlMemoryUtilization() *prometheus.GaugeVec {
 		},
 		[]string{
 			"resource_name",
+			"resource_id",
 			"compartment_id",
 			"db_instance_id",
 			"db_instance_role",
@@ -98,6 +99,7 @@ func getPostgresqlMemoryUtilizationByCompartment(
 
 		// extract dimension values
 		resourceName := metric.Dimensions["resourceName"]
+		resourceId := metric.Dimensions["resourceId"]
 		compartmentId := *metric.CompartmentId
 		dbInstanceId := metric.Dimensions["dbInstanceId"]
 		dbInstanceRole := metric.Dimensions["dbInstanceRole"]
@@ -105,6 +107,7 @@ func getPostgresqlMemoryUtilizationByCompartment(
 		// set gauge value
 		postgresqlMemoryUtilization.With(prometheus.Labels{
 			"resource_name":    resourceName,
+			"resource_id":      resourceId,
 			"compartment_id":   compartmentId,
 			"db_instance_id":   dbInstanceId,
 			"db_instance_role": dbInstanceRole,
