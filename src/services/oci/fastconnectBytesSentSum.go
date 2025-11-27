@@ -12,16 +12,18 @@ import (
 	"oci-exporter/src/utils"
 )
 
-var fastconnectBytesSentSum = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Namespace: "oci_exporter",
-		Name:      "fastconnect_bytes_sent_sum_1m",
-		Help:      "Total (sum) Bytes Received on OCI FastConnect.",
-	},
-	[]string{"resource_name", "compartment_id", "resource_id"},
-)
+func newFastconnectBytesSentSum() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "oci_exporter",
+			Name:      "fastconnect_bytes_sent_sum_1m",
+			Help:      "Total (sum) Bytes Received on OCI FastConnect.",
+		},
+		[]string{"resource_name", "compartment_id", "resource_id"},
+	)
+}
 
-func GetFastconnectBytesSentSum(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetFastconnectBytesSentSum(ctx context.Context, fastconnectBytesSentSum *prometheus.GaugeVec) error {
 	fastconnectBytesSentSum.Reset()
 
 	namespaceQuery := "oci_fastconnect"
@@ -34,12 +36,13 @@ func GetFastconnectBytesSentSum(ctx context.Context) (*prometheus.GaugeVec, erro
 		compartmentId,
 		query,
 		namespaceQuery,
+		fastconnectBytesSentSum,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return fastconnectBytesSentSum, nil
+	return nil
 }
 
 func getFastconnectBytesSentSumByCompartment(
@@ -47,6 +50,7 @@ func getFastconnectBytesSentSumByCompartment(
 	compartmentId string,
 	query string,
 	namespaceQuery string,
+	fastconnectBytesSentSum *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 

@@ -12,21 +12,23 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var dbCurrLogon = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Namespace: "oci_exporter",
-		Name:      "database_current_logons",
-		Help:      "The number of successful logons",
-	},
-	[]string{
-		"reource_id",
-		"compartment_id",
-		"resource_name",
-		"instance_name",
-	},
-)
+func newDbCurrLogon() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "oci_exporter",
+			Name:      "database_current_logons",
+			Help:      "The number of successful logons",
+		},
+		[]string{
+			"reource_id",
+			"compartment_id",
+			"resource_name",
+			"instance_name",
+		},
+	)
+}
 
-func GetDbCurrLogon(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetDbCurrLogon(ctx context.Context, dbCurrLogon *prometheus.GaugeVec) error {
 	dbCurrLogon.Reset()
 
 	namespaceQuery := "oci_database"
@@ -39,12 +41,13 @@ func GetDbCurrLogon(ctx context.Context) (*prometheus.GaugeVec, error) {
 		compartmentId,
 		query,
 		namespaceQuery,
+		dbCurrLogon,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return dbCurrLogon, nil
+	return nil
 }
 
 func getDbCurrLogonByCompartment(
@@ -52,6 +55,7 @@ func getDbCurrLogonByCompartment(
 	compartmentId string,
 	query string,
 	namespaceQuery string,
+	dbCurrLogon *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 

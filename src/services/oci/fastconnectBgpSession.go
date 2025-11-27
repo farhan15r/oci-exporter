@@ -12,16 +12,18 @@ import (
 	"oci-exporter/src/utils"
 )
 
-var fastconnectBgpSession = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Namespace: "oci_exporter",
-		Name:      "fastconnect_ipv4_bgp_session_state",
-		Help:      "BGP State of OCI IPv4 FastConnect, 1=up, 0=down.",
-	},
-	[]string{"resource_name", "compartment_id", "resource_id"},
-)
+func newFastconnectBgpSession() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "oci_exporter",
+			Name:      "fastconnect_ipv4_bgp_session_state",
+			Help:      "BGP State of OCI IPv4 FastConnect, 1=up, 0=down.",
+		},
+		[]string{"resource_name", "compartment_id", "resource_id"},
+	)
+}
 
-func GetFastconnectBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetFastconnectBGPSessionState(ctx context.Context, fastconnectBgpSession *prometheus.GaugeVec) error {
 	fastconnectBgpSession.Reset()
 
 	namespaceQuery := "oci_fastconnect"
@@ -34,12 +36,13 @@ func GetFastconnectBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, e
 		compartmentId,
 		query,
 		namespaceQuery,
+		fastconnectBgpSession,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return fastconnectBgpSession, nil
+	return nil
 }
 
 func getFastconnectBGPSessionStateByCompartment(
@@ -47,6 +50,7 @@ func getFastconnectBGPSessionStateByCompartment(
 	compartmentId string,
 	query string,
 	namespaceQuery string,
+	fastconnectBgpSession *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 

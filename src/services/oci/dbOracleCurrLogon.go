@@ -12,21 +12,23 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var dbOracleCurrLogon = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Namespace: "oci_exporter",
-		Name:      "database_oracle_current_logons",
-		Help:      "The number of successful logons",
-	},
-	[]string{
-		"reource_id",
-		"compartment_id",
-		"resource_name",
-		"instance_name",
-	},
-)
+func newDbOracleCurrLogon() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "oci_exporter",
+			Name:      "database_oracle_current_logons",
+			Help:      "The number of successful logons",
+		},
+		[]string{
+			"reource_id",
+			"compartment_id",
+			"resource_name",
+			"instance_name",
+		},
+	)
+}
 
-func GetDbOracleCurrLogon(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetDbOracleCurrLogon(ctx context.Context, dbOracleCurrLogon *prometheus.GaugeVec) error {
 	dbOracleCurrLogon.Reset()
 
 	namespaceQuery := "oracle_oci_database"
@@ -39,12 +41,13 @@ func GetDbOracleCurrLogon(ctx context.Context) (*prometheus.GaugeVec, error) {
 		compartmentId,
 		query,
 		namespaceQuery,
+		dbOracleCurrLogon,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return dbOracleCurrLogon, nil
+	return nil
 }
 
 func getDbOracleCurrLogonByCompartment(
@@ -52,6 +55,7 @@ func getDbOracleCurrLogonByCompartment(
 	compartmentId string,
 	query string,
 	namespaceQuery string,
+	dbOracleCurrLogon *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 

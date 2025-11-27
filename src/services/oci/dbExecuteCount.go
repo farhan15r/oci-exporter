@@ -12,21 +12,23 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var dbExecuteCount = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Namespace: "oci_exporter",
-		Name:      "database_execute_count",
-		Help:      "The number of user and recursive calls that executed SQL statements.",
-	},
-	[]string{
-		"reource_id",
-		"compartment_id",
-		"resource_name",
-		"instance_name",
-	},
-)
+func newDbExecuteCount() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "oci_exporter",
+			Name:      "database_execute_count",
+			Help:      "The number of user and recursive calls that executed SQL statements.",
+		},
+		[]string{
+			"reource_id",
+			"compartment_id",
+			"resource_name",
+			"instance_name",
+		},
+	)
+}
 
-func GetDbExecuteCount(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetDbExecuteCount(ctx context.Context, dbExecuteCount *prometheus.GaugeVec) error {
 	dbExecuteCount.Reset()
 
 	namespaceQuery := "oci_database"
@@ -39,12 +41,13 @@ func GetDbExecuteCount(ctx context.Context) (*prometheus.GaugeVec, error) {
 		compartmentId,
 		query,
 		namespaceQuery,
+		dbExecuteCount,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return dbExecuteCount, nil
+	return nil
 }
 
 func getDbExecuteCountByCompartment(
@@ -52,6 +55,7 @@ func getDbExecuteCountByCompartment(
 	compartmentId string,
 	query string,
 	namespaceQuery string,
+	dbExecuteCount *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 

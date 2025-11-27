@@ -12,16 +12,18 @@ import (
 	"oci-exporter/src/utils"
 )
 
-var vpnBgpSession = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Namespace: "oci_exporter",
-		Name:      "vpn_ipv4_bgp_session_state",
-		Help:      "BGP State of OCI IPv4 VPN, 1=up, 0=down.",
-	},
-	[]string{"resource_name", "compartment_id", "parent_resource_id"},
-)
+func newVpnBgpSession() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "oci_exporter",
+			Name:      "vpn_ipv4_bgp_session_state",
+			Help:      "BGP State of OCI IPv4 VPN, 1=up, 0=down.",
+		},
+		[]string{"resource_name", "compartment_id", "parent_resource_id"},
+	)
+}
 
-func GetVpnBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetVpnBGPSessionState(ctx context.Context, vpnBgpSession *prometheus.GaugeVec) error {
 	vpnBgpSession.Reset()
 
 	namespaceQuery := "oci_vpn"
@@ -34,12 +36,13 @@ func GetVpnBGPSessionState(ctx context.Context) (*prometheus.GaugeVec, error) {
 		compartmentId,
 		query,
 		namespaceQuery,
+		vpnBgpSession,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return vpnBgpSession, nil
+	return nil
 }
 
 func getVpnBGPSessionStateByCompartment(
@@ -47,6 +50,7 @@ func getVpnBGPSessionStateByCompartment(
 	compartmentId string,
 	query string,
 	namespaceQuery string,
+	vpnBgpSession *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 

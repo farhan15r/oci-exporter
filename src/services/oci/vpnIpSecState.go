@@ -12,16 +12,18 @@ import (
 	"oci-exporter/src/utils"
 )
 
-var vpnIpSecState = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Namespace: "oci_exporter",
-		Name:      "vpn_ipsec_tunnel_state",
-		Help:      "IPSec Tunnel State of OCI VPN, 1=up, 0=down.",
-	},
-	[]string{"resource_name", "compartment_id", "parent_resource_id"},
-)
+func newVpnIpSecState() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "oci_exporter",
+			Name:      "vpn_ipsec_tunnel_state",
+			Help:      "IPSec Tunnel State of OCI VPN, 1=up, 0=down.",
+		},
+		[]string{"resource_name", "compartment_id", "parent_resource_id"},
+	)
+}
 
-func GetVpnIpSecState(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetVpnIpSecState(ctx context.Context, vpnIpSecState *prometheus.GaugeVec) error {
 	vpnIpSecState.Reset()
 
 	namespaceQuery := "oci_vpn"
@@ -36,12 +38,13 @@ func GetVpnIpSecState(ctx context.Context) (*prometheus.GaugeVec, error) {
 		compartmentId,
 		query,
 		namespaceQuery,
+		vpnIpSecState,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return vpnIpSecState, nil
+	return nil
 }
 
 func getVpnIpSecStateByCompartment(
@@ -49,6 +52,7 @@ func getVpnIpSecStateByCompartment(
 	compartmentId string,
 	query string,
 	namespaceQuery string,
+	vpnIpSecState *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 

@@ -12,21 +12,23 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var dbClusterNodeStatus = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Namespace: "oci_exporter",
-		Name:      "database_cluster_node_status",
-		Help:      "Node Status of OCI Database Cluster. 1 for Up, 0 for Down.",
-	},
-	[]string{
-		"compartment_id",
-		"db_node_name",
-		"reource_id",
-		"resource_name",
-	},
-)
+func newDbClusterNodeStatus() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "oci_exporter",
+			Name:      "database_cluster_node_status",
+			Help:      "Node Status of OCI Database Cluster. 1 for Up, 0 for Down.",
+		},
+		[]string{
+			"compartment_id",
+			"db_node_name",
+			"reource_id",
+			"resource_name",
+		},
+	)
+}
 
-func GetDbClusterNodeStatus(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetDbClusterNodeStatus(ctx context.Context, dbClusterNodeStatus *prometheus.GaugeVec) error {
 	dbClusterNodeStatus.Reset()
 
 	namespaceQuery := "oci_database_cluster"
@@ -39,12 +41,13 @@ func GetDbClusterNodeStatus(ctx context.Context) (*prometheus.GaugeVec, error) {
 		compartmentId,
 		query,
 		namespaceQuery,
+		dbClusterNodeStatus,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return dbClusterNodeStatus, nil
+	return nil
 }
 
 func getDbClusterNodeStatusByCompartment(
@@ -52,6 +55,7 @@ func getDbClusterNodeStatusByCompartment(
 	compartmentId string,
 	query string,
 	namespaceQuery string,
+	dbClusterNodeStatus *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 

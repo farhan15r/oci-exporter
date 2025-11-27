@@ -12,16 +12,18 @@ import (
 	"oci-exporter/src/utils"
 )
 
-var vpnBytesReceivedSum = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Namespace: "oci_exporter",
-		Name:      "vpn_bytes_received_sum_1m",
-		Help:      "Total (sum) Bytes Received on OCI VPN.",
-	},
-	[]string{"resource_name", "compartment_id", "parent_resource_id"},
-)
+func newVpnBytesReceivedSum() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "oci_exporter",
+			Name:      "vpn_bytes_received_sum_1m",
+			Help:      "Total (sum) Bytes Received on OCI VPN.",
+		},
+		[]string{"resource_name", "compartment_id", "parent_resource_id"},
+	)
+}
 
-func GetVpnBytesReceivedSum(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetVpnBytesReceivedSum(ctx context.Context, vpnBytesReceivedSum *prometheus.GaugeVec) error {
 	vpnBytesReceivedSum.Reset()
 
 	namespaceQuery := "oci_vpn"
@@ -34,12 +36,13 @@ func GetVpnBytesReceivedSum(ctx context.Context) (*prometheus.GaugeVec, error) {
 		compartmentId,
 		query,
 		namespaceQuery,
+		vpnBytesReceivedSum,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return vpnBytesReceivedSum, nil
+	return nil
 }
 
 func getVpnBytesReceivedSumByCompartment(
@@ -47,6 +50,7 @@ func getVpnBytesReceivedSumByCompartment(
 	compartmentId string,
 	query string,
 	namespaceQuery string,
+	vpnBytesReceivedSum *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 

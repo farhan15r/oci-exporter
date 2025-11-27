@@ -12,21 +12,23 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var dbOracleExecuteCount = prometheus.NewGaugeVec(
-	prometheus.GaugeOpts{
-		Namespace: "oci_exporter",
-		Name:      "database_oracle_execute_count",
-		Help:      "The number of user and recursive calls that executed SQL statements.",
-	},
-	[]string{
-		"reource_id",
-		"compartment_id",
-		"resource_name",
-		"instance_name",
-	},
-)
+func newDbOracleExecuteCount() *prometheus.GaugeVec {
+	return prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "oci_exporter",
+			Name:      "database_oracle_execute_count",
+			Help:      "The number of user and recursive calls that executed SQL statements.",
+		},
+		[]string{
+			"reource_id",
+			"compartment_id",
+			"resource_name",
+			"instance_name",
+		},
+	)
+}
 
-func GetDbOracleExecuteCount(ctx context.Context) (*prometheus.GaugeVec, error) {
+func GetDbOracleExecuteCount(ctx context.Context, dbOracleExecuteCount *prometheus.GaugeVec) error {
 	dbOracleExecuteCount.Reset()
 
 	namespaceQuery := "oracle_oci_database"
@@ -39,12 +41,13 @@ func GetDbOracleExecuteCount(ctx context.Context) (*prometheus.GaugeVec, error) 
 		compartmentId,
 		query,
 		namespaceQuery,
+		dbOracleExecuteCount,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return dbOracleExecuteCount, nil
+	return nil
 }
 
 func getDbOracleExecuteCountByCompartment(
@@ -52,6 +55,7 @@ func getDbOracleExecuteCountByCompartment(
 	compartmentId string,
 	query string,
 	namespaceQuery string,
+	dbOracleExecuteCount *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 
