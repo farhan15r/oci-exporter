@@ -23,6 +23,8 @@ var (
 	vpnBytesReceivedSum         = newVpnBytesReceivedSum()
 	vpnBytesSentSum             = newVpnBytesSentSum()
 	vpnIpSecState               = newVpnIpSecState()
+	postgresqlCpuUtilization    = newPostgresqlCpuUtilization()
+	postgresqlMemoryUtilization = newPostgresqlMemoryUtilization()
 )
 
 func InitAndRegister() {
@@ -35,6 +37,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(dbClusterAsmDiskUtil)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// dbClusterNodeStatus
 	err = GetDbClusterNodeStatus(context.Background(), dbClusterNodeStatus)
@@ -43,6 +46,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(dbClusterNodeStatus)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// dbCurrLogon
 	err = GetDbCurrLogon(context.Background(), dbCurrLogon)
@@ -51,6 +55,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(dbCurrLogon)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// dbExecuteCount
 	err = GetDbExecuteCount(context.Background(), dbExecuteCount)
@@ -59,6 +64,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(dbExecuteCount)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// dbOracleCurrLogon
 	err = GetDbOracleCurrLogon(context.Background(), dbOracleCurrLogon)
@@ -67,6 +73,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(dbOracleCurrLogon)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// dbOracleExecuteCount
 	err = GetDbOracleExecuteCount(context.Background(), dbOracleExecuteCount)
@@ -75,6 +82,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(dbOracleExecuteCount)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// fastconnectBgpSession
 	err = GetFastconnectBGPSessionState(context.Background(), fastconnectBgpSession)
@@ -83,6 +91,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(fastconnectBgpSession)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// fastconnectBytesReceivedSum
 	err = GetFastconnectBytesReceivedSum(context.Background(), fastconnectBytesReceivedSum)
@@ -91,6 +100,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(fastconnectBytesReceivedSum)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// fastconnectBytesSentSum
 	err = GetFastconnectBytesSentSum(context.Background(), fastconnectBytesSentSum)
@@ -99,6 +109,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(fastconnectBytesSentSum)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// vpnBgpSession
 	err = GetVpnBGPSessionState(context.Background(), vpnBgpSession)
@@ -107,6 +118,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(vpnBgpSession)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// vpnBytesReceivedSum
 	err = GetVpnBytesReceivedSum(context.Background(), vpnBytesReceivedSum)
@@ -115,6 +127,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(vpnBytesReceivedSum)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// vpnBytesSentSum
 	err = GetVpnBytesSentSum(context.Background(), vpnBytesSentSum)
@@ -123,6 +136,7 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(vpnBytesSentSum)
 	}
+	time.Sleep(time.Millisecond * 100)
 
 	// vpnIpSecState
 	err = GetVpnIpSecState(context.Background(), vpnIpSecState)
@@ -131,6 +145,25 @@ func InitAndRegister() {
 	} else {
 		prometheus.MustRegister(vpnIpSecState)
 	}
+	time.Sleep(time.Millisecond * 100)
+
+	// postgresqlCpuUtilization
+	err = GetPostgresqlCpuUtilization(context.Background(), postgresqlCpuUtilization)
+	if err != nil {
+		utils.Logger.Error("GetPostgresqlCpuUtilization init failed", "error", err.Error())
+	} else {
+		prometheus.MustRegister(postgresqlCpuUtilization)
+	}
+	time.Sleep(time.Millisecond * 100)
+
+	// postgresqlMemoryUtilization
+	err = GetPostgresqlMemoryUtilization(context.Background(), postgresqlMemoryUtilization)
+	if err != nil {
+		utils.Logger.Error("GetPostgresqlMemoryUtilization init failed", "error", err.Error())
+	} else {
+		prometheus.MustRegister(postgresqlMemoryUtilization)
+	}
+	time.Sleep(time.Millisecond * 100)
 }
 
 func StartBackgroundUpdater(ctx context.Context) {
@@ -223,6 +256,18 @@ func StartBackgroundUpdater(ctx context.Context) {
 			err = GetVpnIpSecState(ctx, vpnIpSecState)
 			if err != nil {
 				utils.Logger.Error("refresh GetVpnIpSecState failed", "error", err.Error())
+			}
+			time.Sleep(time.Millisecond * 100)
+
+			err = GetPostgresqlCpuUtilization(ctx, postgresqlCpuUtilization)
+			if err != nil {
+				utils.Logger.Error("refresh GetPostgresqlCpuUtilization failed", "error", err.Error())
+			}
+			time.Sleep(time.Millisecond * 100)
+
+			err = GetPostgresqlMemoryUtilization(ctx, postgresqlMemoryUtilization)
+			if err != nil {
+				utils.Logger.Error("refresh GetPostgresqlMemoryUtilization failed", "error", err.Error())
 			}
 			time.Sleep(time.Millisecond * 100)
 		}
