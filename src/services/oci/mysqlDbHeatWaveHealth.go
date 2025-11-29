@@ -12,37 +12,35 @@ import (
 	"oci-exporter/src/utils"
 )
 
-func newPostgresqlCpuUtilization() *prometheus.GaugeVec {
+func newMysqlDbHeatWaveHealth() *prometheus.GaugeVec {
 	return prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "oci_exporter",
-			Name:      "postgresql_cpu_utilization",
-			Help:      "CPU Utilization of OCI PostgreSQL Database.",
+			Name:      "mysql_db_heat_wave_health",
+			Help:      "HeatWave Health of OCI MySQL Database. HeatWave cluster health status: 0 - HEALTHY; 0.5 - RELOADING DATA; 1 - RECOVERING; 2 - FAILED",
 		},
 		[]string{
+			"compartment_id",
 			"resource_name",
 			"resource_id",
-			"compartment_id",
-			"db_instance_id",
-			"db_instance_role",
 		},
 	)
 }
 
-func GetPostgresqlCpuUtilization(ctx context.Context, postgresqlCpuUtilization *prometheus.GaugeVec) error {
-	postgresqlCpuUtilization.Reset()
+func GetMysqlDbHeatWaveHealth(ctx context.Context, mysqlDbHeatWaveHealth *prometheus.GaugeVec) error {
+	mysqlDbHeatWaveHealth.Reset()
 
-	namespaceQuery := "oci_postgresql"
-	query := "CpuUtilization[1m].mean()"
+	namespaceQuery := "oci_mysql_database"
+	query := "HeatWaveHealth[1m].mean()"
 
 	compartmentId := config.CompartmentId
 
-	err := getPostgresqlCpuUtilizationByCompartment(
+	err := getMysqlDbHeatWaveHealthByCompartment(
 		ctx,
 		compartmentId,
 		query,
 		namespaceQuery,
-		postgresqlCpuUtilization,
+		mysqlDbHeatWaveHealth,
 	)
 	if err != nil {
 		return err
@@ -51,12 +49,12 @@ func GetPostgresqlCpuUtilization(ctx context.Context, postgresqlCpuUtilization *
 	return nil
 }
 
-func getPostgresqlCpuUtilizationByCompartment(
+func getMysqlDbHeatWaveHealthByCompartment(
 	ctx context.Context,
 	compartmentId string,
 	query string,
 	namespaceQuery string,
-	postgresqlCpuUtilization *prometheus.GaugeVec,
+	mysqlDbHeatWaveHealth *prometheus.GaugeVec,
 ) error {
 	minutes := config.TimeRangeMinute
 
@@ -98,19 +96,15 @@ func getPostgresqlCpuUtilizationByCompartment(
 		value := *lastPoint.Value
 
 		// extract dimension values
+		compartmentId := *metric.CompartmentId
 		resourceName := metric.Dimensions["resourceName"]
 		resourceId := metric.Dimensions["resourceId"]
-		compartmentId := *metric.CompartmentId
-		dbInstanceId := metric.Dimensions["dbInstanceId"]
-		dbInstanceRole := metric.Dimensions["dbInstanceRole"]
 
 		// set gauge value
-		postgresqlCpuUtilization.With(prometheus.Labels{
-			"resource_name":    resourceName,
-			"resource_id":      resourceId,
-			"compartment_id":   compartmentId,
-			"db_instance_id":   dbInstanceId,
-			"db_instance_role": dbInstanceRole,
+		mysqlDbHeatWaveHealth.With(prometheus.Labels{
+			"resource_name":  resourceName,
+			"resource_id":    resourceId,
+			"compartment_id": compartmentId,
 		}).Set(value)
 	}
 

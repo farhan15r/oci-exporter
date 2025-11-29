@@ -27,6 +27,11 @@ var (
 	postgresqlMemoryUtilization = newPostgresqlMemoryUtilization()
 	postgresqlUsedStorage       = newPostgresqlUsedStorage()
 	postgresqlConnections       = newPostgresqlConnections()
+	mysqlDbCpuUtilization       = newMysqlDbCpuUtilization()
+	mysqlDbMemoryUtilization    = newMysqlDbMemoryUtilization()
+	mysqlDbCurrConnections      = newMysqlDbCurrConnections()
+	mysqlDbVolumeUtilization    = newMysqlDbVolumeUtilization()
+	mysqlDbHeatWaveHealth       = newMysqlDbHeatWaveHealth()
 )
 
 func InitAndRegister() {
@@ -184,6 +189,51 @@ func InitAndRegister() {
 		prometheus.MustRegister(postgresqlConnections)
 	}
 	time.Sleep(time.Millisecond * 100)
+
+	// mysqlDbCpuUtilization
+	err = GetMysqlDbCpuUtilization(context.Background(), mysqlDbCpuUtilization)
+	if err != nil {
+		utils.Logger.Error("GetMysqlDbCpuUtilization init failed", "error", err.Error())
+	} else {
+		prometheus.MustRegister(mysqlDbCpuUtilization)
+	}
+	time.Sleep(time.Millisecond * 100)
+
+	// mysqlDbMemoryUtilization
+	err = GetMysqlDbMemoryUtilization(context.Background(), mysqlDbMemoryUtilization)
+	if err != nil {
+		utils.Logger.Error("GetMysqlDbMemoryUtilization init failed", "error", err.Error())
+	} else {
+		prometheus.MustRegister(mysqlDbMemoryUtilization)
+	}
+	time.Sleep(time.Millisecond * 100)
+
+	// mysqlDbCurrConnections
+	err = GetMysqlDbCurrConnections(context.Background(), mysqlDbCurrConnections)
+	if err != nil {
+		utils.Logger.Error("GetMysqlDbCurrConnections init failed", "error", err.Error())
+	} else {
+		prometheus.MustRegister(mysqlDbCurrConnections)
+	}
+	time.Sleep(time.Millisecond * 100)
+
+	// mysqlDbVolumeUtilization
+	err = GetMysqlDbVolumeUtilization(context.Background(), mysqlDbVolumeUtilization)
+	if err != nil {
+		utils.Logger.Error("GetMysqlDbVolumeUtilization init failed", "error", err.Error())
+	} else {
+		prometheus.MustRegister(mysqlDbVolumeUtilization)
+	}
+	time.Sleep(time.Millisecond * 100)
+
+	// mysqlDbHeatWaveHealth
+	err = GetMysqlDbHeatWaveHealth(context.Background(), mysqlDbHeatWaveHealth)
+	if err != nil {
+		utils.Logger.Error("GetMysqlDbHeatWaveHealth init failed", "error", err.Error())
+	} else {
+		prometheus.MustRegister(mysqlDbHeatWaveHealth)
+	}
+	time.Sleep(time.Millisecond * 100)
 }
 
 func StartBackgroundUpdater(ctx context.Context) {
@@ -300,6 +350,36 @@ func StartBackgroundUpdater(ctx context.Context) {
 			err = GetPostgresqlConnections(ctx, postgresqlConnections)
 			if err != nil {
 				utils.Logger.Error("refresh GetPostgresqlConnections failed", "error", err.Error())
+			}
+			time.Sleep(time.Millisecond * 100)
+
+			err = GetMysqlDbCpuUtilization(ctx, mysqlDbCpuUtilization)
+			if err != nil {
+				utils.Logger.Error("refresh GetMysqlDbCpuUtilization failed", "error", err.Error())
+			}
+			time.Sleep(time.Millisecond * 100)
+
+			err = GetMysqlDbMemoryUtilization(ctx, mysqlDbMemoryUtilization)
+			if err != nil {
+				utils.Logger.Error("refresh GetMysqlDbMemoryUtilization failed", "error", err.Error())
+			}
+			time.Sleep(time.Millisecond * 100)
+
+			err = GetMysqlDbCurrConnections(ctx, mysqlDbCurrConnections)
+			if err != nil {
+				utils.Logger.Error("refresh GetMysqlDbCurrConnections failed", "error", err.Error())
+			}
+			time.Sleep(time.Millisecond * 100)
+
+			err = GetMysqlDbVolumeUtilization(ctx, mysqlDbVolumeUtilization)
+			if err != nil {
+				utils.Logger.Error("refresh GetMysqlDbVolumeUtilization failed", "error", err.Error())
+			}
+			time.Sleep(time.Millisecond * 100)
+
+			err = GetMysqlDbHeatWaveHealth(ctx, mysqlDbHeatWaveHealth)
+			if err != nil {
+				utils.Logger.Error("refresh GetMysqlDbHeatWaveHealth failed", "error", err.Error())
 			}
 			time.Sleep(time.Millisecond * 100)
 		}
